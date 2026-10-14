@@ -20,3 +20,4 @@ Chaque décision d'architecture importante est documentée : contexte, décision
 | 0014 | [Référentiel statique pour le mode Capture](0014-referentiel-capture-statique.md) | Acceptée |
 | 0015 | [Progression du mode Capture : stockée par Équipes, décidée par le serveur](0015-progression-capture.md) | Acceptée |
 | 0016 | [Les Pokémon capturés, seul droit d'utilisation](0016-pokemon-debloques-droit-utilisation.md) | Acceptée |
+| 0017 | [Un dépôt par composant, regroupés dans une organisation](0017-un-depot-par-composant.md) | Acceptée |

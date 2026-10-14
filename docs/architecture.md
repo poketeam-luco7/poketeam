@@ -310,3 +310,27 @@ fournie par la gateway ([ADR 0004](adr/0004-persistance-polyglotte.md)).
 
 Les secrets (`JWT_SECRET`, `DJANGO_SECRET_KEY`) viennent du fichier `.env`. `JWT_SECRET` est le
 seul secret partagé : Dresseurs **signe** les tokens, la gateway les **vérifie**.
+
+### Un dépôt par composant
+
+Chaque conteneur applicatif a son dépôt, sa CI et son cycle de vie ; le dépôt `poketeam` ne
+contient que l'orchestration et la documentation
+([ADR 0017](adr/0017-un-depot-par-composant.md)).
+
+```mermaid
+flowchart LR
+    subgraph ORG["Organisation GitHub"]
+        O["poketeam<br/><i>docker-compose, docs, ADR</i>"]
+        F["poketeam-front"]
+        G["poketeam-gateway"]
+        D["poketeam-dresseurs"]
+        E["poketeam-equipes"]
+        P["poketeam-pokedex"]
+    end
+    O -.->|"build: ../poketeam-*"| G & D & E & P
+    F & G & D & E & P -->|"push"| CI["GitHub Actions<br/>tests + build de l'image"]
+```
+
+Les contrats entre dépôts sont les API REST (routes de la gateway, routes internes du
+Pokédex) : un service peut évoluer et être testé seul tant qu'il respecte son contrat, ce que
+vérifient ses tests (les autres services y sont simulés).

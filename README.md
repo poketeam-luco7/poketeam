@@ -26,6 +26,22 @@ flowchart LR
 Seule la gateway est exposée. Les services et les bases ne sont joignables que sur le réseau
 Docker interne.
 
+## Les dépôts
+
+Chaque composant a **son propre dépôt** dans l'organisation GitHub
+[poketeam-lucas](https://github.com/poketeam-lucas), avec ses tests et sa CI (GitHub Actions) :
+
+| Dépôt | Composant | Stack |
+|---|---|---|
+| [`poketeam`](https://github.com/poketeam-lucas/poketeam) | **Orchestration** (ce dépôt) : `docker-compose.yml`, docs, ADR | Docker Compose |
+| [`poketeam-front`](https://github.com/poketeam-lucas/poketeam-front) | Front | Angular 19 |
+| [`poketeam-gateway`](https://github.com/poketeam-lucas/poketeam-gateway) | API Gateway | Node 22, Express 5 |
+| [`poketeam-dresseurs`](https://github.com/poketeam-lucas/poketeam-dresseurs) | Microservice Dresseurs | Django + PostgreSQL |
+| [`poketeam-equipes`](https://github.com/poketeam-lucas/poketeam-equipes) | Microservice Équipes | Django + MongoDB |
+| [`poketeam-pokedex`](https://github.com/poketeam-lucas/poketeam-pokedex) | Microservice Pokédex | FastAPI, sans état |
+
+Pourquoi ce découpage : [ADR 0017](docs/adr/0017-un-depot-par-composant.md).
+
 📐 Architecture détaillée (C4, flux, données) : [`docs/architecture.md`](docs/architecture.md)
 🧭 Décisions d'architecture (ADR) : [`docs/adr/`](docs/adr/README.md)
 
@@ -66,23 +82,35 @@ Docker interne.
 - **Node.js 20+** pour le front
 - Un accès internet (le Pokédex interroge PokéAPI)
 
-### 1. Créer le fichier `.env` (secrets, jamais commité)
+### 1. Récupérer les dépôts
+
+Les dépôts doivent être **côte à côte** : `docker-compose.yml` construit les images depuis
+`../poketeam-gateway`, `../poketeam-pokedex`…
+
+```bash
+mkdir poketeam-workspace && cd poketeam-workspace
+git clone https://github.com/poketeam-lucas/poketeam.git
+cd poketeam
+./scripts/clone-all.sh     # clone (ou met à jour) les 5 autres dépôts à côté
+```
+
+### 2. Créer le fichier `.env` (secrets, jamais commité)
 
 ```bash
 printf "JWT_SECRET=%s\nDJANGO_SECRET_KEY=%s\n" "$(openssl rand -hex 32)" "$(openssl rand -hex 32)" > .env
 ```
 
-### 2. Démarrer le backend
+### 3. Démarrer le backend
 
 ```bash
 docker compose up -d --build
 docker compose ps        # 6 conteneurs « Up », seule la gateway expose le port 3000
 ```
 
-### 3. Démarrer le front
+### 4. Démarrer le front
 
 ```bash
-cd front
+cd ../poketeam-front
 npm install
 npx ng serve
 ```
@@ -92,22 +120,24 @@ Ouvrir **http://localhost:4200**, créer un compte depuis la page d'accueil puis
 > Le premier chargement d'une génération prend quelques secondes (le Pokédex remplit son
 > cache depuis PokéAPI), les suivants sont instantanés.
 
-## Structure du dépôt
+## Organisation des dossiers
 
 ```
-poketeam/
-├── docker-compose.yml     # gateway, 3 services, 2 bases
-├── .env.example           # variables à définir dans .env
-├── front/                 # Angular 19 (front existant du monolithe)
-├── gateway/               # Node/Express : routage, JWT, CORS
-├── dresseurs/             # Django + DRF + PostgreSQL : comptes, authentification
-├── equipes/               # Django + DRF + pymongo + MongoDB : équipes, versus, boss
-├── pokedex/               # FastAPI, sans état : façade PokéAPI, règles et calculs Pokémon
-│   ├── app/data/capture.json    # référentiel du mode Capture (espèces, évolutions, stats)
-│   └── scripts/                 # génération de ce référentiel depuis les CSV de PokéAPI
-└── docs/
-    ├── architecture.md    # schémas C4, flux, modèles de données
-    └── adr/               # Architecture Decision Records
+poketeam-workspace/
+├── poketeam/                  # orchestration (ce dépôt)
+│   ├── docker-compose.yml     # gateway, 3 services, 2 bases
+│   ├── .env.example           # variables à définir dans .env
+│   ├── scripts/clone-all.sh   # récupère les autres dépôts
+│   └── docs/
+│       ├── architecture.md    # schémas C4, flux, modèles de données
+│       └── adr/               # Architecture Decision Records
+├── poketeam-front/            # Angular 19 (front existant du monolithe)
+├── poketeam-gateway/          # Node/Express : routage, JWT, CORS
+├── poketeam-dresseurs/        # Django + DRF + PostgreSQL : comptes, authentification
+├── poketeam-equipes/          # Django + DRF + pymongo + MongoDB : équipes, versus, boss, capture
+└── poketeam-pokedex/          # FastAPI, sans état : façade PokéAPI, règles et calculs Pokémon
+    ├── app/data/capture.json  # référentiel du mode Capture (espèces, évolutions, stats)
+    └── scripts/               # génération de ce référentiel depuis les CSV de PokéAPI
 ```
 
 ## API (via la gateway, `http://localhost:3000`)
@@ -145,22 +175,16 @@ en développement, exposer temporairement le port 8000 du service `pokedex`.
 
 ## Tests
 
-**77 tests automatisés** répartis dans les 4 composants backend.
+**77 tests automatisés**, chacun dans le dépôt de son composant. Ils tournent à chaque push
+dans **GitHub Actions** (onglet *Actions* de chaque dépôt), avec un vrai PostgreSQL ou MongoDB
+pour les services qui en ont un. Le front est vérifié par un build.
 
-```bash
-# Pokédex : 39 tests (types, formule, boss, mode Capture, façade PokéAPI simulée)
-docker run --rm -v "$PWD/pokedex":/app -w /app python:3.12-slim \
-  sh -c "pip install -q -r requirements.txt pytest && python -m pytest -v"
-
-# Dresseurs : 7 tests, contre la vraie base PostgreSQL
-docker compose run --rm dresseurs python manage.py test
-
-# Équipes : 23 tests, contre la vraie base MongoDB (Pokédex simulé)
-docker compose run --rm equipes python manage.py test
-
-# Gateway : 8 tests (JWT, usurpation d'identité, routage, CORS, service arrêté)
-docker run --rm -v "$PWD/gateway":/app -w /app node:22-alpine sh -c "npm ci --silent && npm test"
-```
+| Dépôt | Tests | En local, depuis `poketeam/` |
+|---|---|---|
+| `poketeam-pokedex` | 39 : types, formule, boss, mode Capture, façade PokéAPI simulée | `docker run --rm -v "$PWD/../poketeam-pokedex":/app -w /app python:3.12-slim sh -c "pip install -q -r requirements.txt pytest && python -m pytest -v"` |
+| `poketeam-dresseurs` | 7, contre la vraie base PostgreSQL | `docker compose run --rm dresseurs python manage.py test` |
+| `poketeam-equipes` | 23, contre la vraie base MongoDB (Pokédex simulé) | `docker compose run --rm equipes python manage.py test` |
+| `poketeam-gateway` | 8 : JWT, usurpation d'identité, routage, CORS, service arrêté | `docker run --rm -v "$PWD/../poketeam-gateway":/app -w /app node:22-alpine sh -c "npm ci --silent && npm test"` |
 
 ## La formule d'affrontement
 
