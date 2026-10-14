@@ -2,7 +2,7 @@
 # Récupère (ou met à jour) les dépôts des composants à côté de celui-ci.
 # Usage : ./scripts/clone-all.sh
 set -euo pipefail
-ORG="${ORG:-poketeam-lucas}"
+ORG="${ORG:-poketeam-luco7}"
 cd "$(dirname "$0")/../.."
 for c in front gateway dresseurs equipes pokedex; do
   if [ -d "poketeam-$c/.git" ]; then

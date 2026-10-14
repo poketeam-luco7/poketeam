@@ -29,16 +29,16 @@ Docker interne.
 ## Les dépôts
 
 Chaque composant a **son propre dépôt** dans l'organisation GitHub
-[poketeam-lucas](https://github.com/poketeam-lucas), avec ses tests et sa CI (GitHub Actions) :
+[poketeam-luco7](https://github.com/poketeam-luco7), avec ses tests et sa CI (GitHub Actions) :
 
 | Dépôt | Composant | Stack |
 |---|---|---|
-| [`poketeam`](https://github.com/poketeam-lucas/poketeam) | **Orchestration** (ce dépôt) : `docker-compose.yml`, docs, ADR | Docker Compose |
-| [`poketeam-front`](https://github.com/poketeam-lucas/poketeam-front) | Front | Angular 19 |
-| [`poketeam-gateway`](https://github.com/poketeam-lucas/poketeam-gateway) | API Gateway | Node 22, Express 5 |
-| [`poketeam-dresseurs`](https://github.com/poketeam-lucas/poketeam-dresseurs) | Microservice Dresseurs | Django + PostgreSQL |
-| [`poketeam-equipes`](https://github.com/poketeam-lucas/poketeam-equipes) | Microservice Équipes | Django + MongoDB |
-| [`poketeam-pokedex`](https://github.com/poketeam-lucas/poketeam-pokedex) | Microservice Pokédex | FastAPI, sans état |
+| [`poketeam`](https://github.com/poketeam-luco7/poketeam) | **Orchestration** (ce dépôt) : `docker-compose.yml`, docs, ADR | Docker Compose |
+| [`poketeam-front`](https://github.com/poketeam-luco7/poketeam-front) | Front | Angular 19 |
+| [`poketeam-gateway`](https://github.com/poketeam-luco7/poketeam-gateway) | API Gateway | Node 22, Express 5 |
+| [`poketeam-dresseurs`](https://github.com/poketeam-luco7/poketeam-dresseurs) | Microservice Dresseurs | Django + PostgreSQL |
+| [`poketeam-equipes`](https://github.com/poketeam-luco7/poketeam-equipes) | Microservice Équipes | Django + MongoDB |
+| [`poketeam-pokedex`](https://github.com/poketeam-luco7/poketeam-pokedex) | Microservice Pokédex | FastAPI, sans état |
 
 Pourquoi ce découpage : [ADR 0017](docs/adr/0017-un-depot-par-composant.md).
 
@@ -89,7 +89,7 @@ Les dépôts doivent être **côte à côte** : `docker-compose.yml` construit l
 
 ```bash
 mkdir poketeam-workspace && cd poketeam-workspace
-git clone https://github.com/poketeam-lucas/poketeam.git
+git clone https://github.com/poketeam-luco7/poketeam.git
 cd poketeam
 ./scripts/clone-all.sh     # clone (ou met à jour) les 5 autres dépôts à côté
 ```
