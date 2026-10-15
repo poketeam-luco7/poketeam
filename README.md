@@ -73,9 +73,9 @@ Pourquoi ce découpage : [ADR 0017](docs/adr/0017-un-depot-par-composant.md).
   Les évolutions se gagnent au combat : **10 victoires** pour la 1re, **30** pour la 2e, choix de
   la branche pour Évoli et consorts, **50 victoires** avec la forme finale pour ses Méga.
   On choisit d'abord le palier, puis l'équipe, qui reste figée jusqu'à la capture ou la
-  défaite ; un Pokémon ne peut pas combattre **2 paliers ou plus sous le sien**. Un palier dont
-  on possède toutes les lignes devient un **entraînement** : les victoires comptent pour les
-  évolutions, sans capture à la clé.
+  défaite. Un palier dont on possède toutes les lignes devient un **entraînement** : les
+  victoires comptent pour les évolutions, sans capture à la clé, et un Pokémon ne peut pas s'y
+  entraîner **2 paliers ou plus sous le sien**. Pour capturer, on entre dans le palier de son choix.
 - **Pokédex du dresseur** : Pokémon capturés sur 1 025, par génération, et Méga-Évolutions.
   Les Pokémon débloqués sont les seuls utilisables partout : une équipe créée avant ce contrôle
   et contenant un Pokémon non capturé est marquée verrouillée et ne peut plus combattre.
@@ -184,13 +184,13 @@ en développement, exposer temporairement le port 8000 du service `pokedex`.
 
 ## Tests
 
-**96 tests automatisés**, chacun dans le dépôt de son composant. Ils tournent à chaque push
+**97 tests automatisés**, chacun dans le dépôt de son composant. Ils tournent à chaque push
 dans **GitHub Actions** (onglet *Actions* de chaque dépôt), avec un vrai PostgreSQL ou MongoDB
 pour les services qui en ont un. Le front est vérifié par un build.
 
 | Dépôt | Tests | En local, depuis `poketeam/` |
 |---|---|---|
-| `poketeam-pokedex` | 49 : types, formule, mode Capture, donjons, boss final, façade PokéAPI simulée | `docker run --rm -v "$PWD/../poketeam-pokedex":/app -w /app python:3.12-slim sh -c "pip install -q -r requirements.txt pytest && python -m pytest -v"` |
+| `poketeam-pokedex` | 50 : types, formule, mode Capture, donjons, boss final, façade PokéAPI simulée | `docker run --rm -v "$PWD/../poketeam-pokedex":/app -w /app python:3.12-slim sh -c "pip install -q -r requirements.txt pytest && python -m pytest -v"` |
 | `poketeam-dresseurs` | 7, contre la vraie base PostgreSQL | `docker compose run --rm dresseurs python manage.py test` |
 | `poketeam-equipes` | 31, contre la vraie base MongoDB (Pokédex simulé) | `docker compose run --rm equipes python manage.py test` |
 | `poketeam-gateway` | 9 : JWT, usurpation d'identité, routage, CORS, service arrêté | `docker run --rm -v "$PWD/../poketeam-gateway":/app -w /app node:22-alpine sh -c "npm ci --silent && npm test"` |

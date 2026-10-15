@@ -29,14 +29,21 @@ les paliers les plus faibles.
 - Les stats et types propres à chaque Méga sont ajoutés au référentiel statique
   ([ADR 0014](0014-referentiel-capture-statique.md)).
 
+### Amendement du 15 octobre 2026
+
+L'écart de palier maximal ne s'applique plus qu'aux **entraînements**. Pour capturer, une
+équipe entre dans le palier de son choix : la règle visait à empêcher d'accumuler des victoires
+sans risque, pas à bloquer la capture des Pokémon faibles. Le Pokédex ne renvoie `tooStrong`
+que si le palier demandé est un entraînement.
+
 ## Conséquences
 
 - ✅ Plus de blocage : il existe toujours un palier où un Pokémon peut gagner des victoires.
 - ✅ Les combats restent disputés : on ne peut pas « farmer » avec une équipe bien plus forte.
 - ✅ Les paliers faibles restent accessibles par les Pokémon faibles : battre un Papilusion
   (palier 7) donne un Chenipan (palier 3), qui peut ensuite y combattre.
-- ⚠️ Un starter (≈ 310, palier 6) ne peut pas descendre sous le palier 5 : les tout premiers
-  paliers ne s'ouvrent qu'après avoir capturé un Pokémon faible, ce qui fait partie du jeu.
+- ✅ Depuis l'amendement, les paliers faibles restent capturables par n'importe quelle équipe ;
+  seul l'entraînement y est réservé aux Pokémon proches de ce niveau.
 
 ## Alternatives écartées
 
