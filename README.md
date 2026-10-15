@@ -64,6 +64,11 @@ Pourquoi ce découpage : [ADR 0017](docs/adr/0017-un-depot-par-composant.md).
   chacun leur donjon. Le mode s'ouvre à **25 Pokémon capturés** ; pour entrer, le total des
   stats de l'équipe doit valoir **3 fois** celles du Pokémon, qui combat avec ses stats **× 4**.
   Le donjon d'une Méga apparaît quand on possède l'espèce qui méga-évolue.
+- **Formes alternatives** : une forme qui garde la même puissance (Shifours Mille Poings,
+  Giratina Originel…) suit son espèce. Une forme qui gagne plus de 20 de stats se mérite :
+  **30 victoires** avec l'espèce pour un Pokémon non légendaire (Superdofin Héros, Motisma…),
+  un **donjon** pour un légendaire (Zygarde Parfait, Primo-Groudon…) ou une **fusion**, visible
+  quand on possède les deux Pokémon (Kyurem Noir : Kyurem et Zekrom).
 - **Boss final** : **Éthernatos Infinimax** (1 125 de stats, × 4 en combat), objectif de fin de
   jeu, réservé aux équipes d'au moins 3 375 de stats.
 - **Mode Capture** : on commence avec un seul starter (parmi les 27 des 9 générations) et on
@@ -184,13 +189,13 @@ en développement, exposer temporairement le port 8000 du service `pokedex`.
 
 ## Tests
 
-**97 tests automatisés**, chacun dans le dépôt de son composant. Ils tournent à chaque push
+**102 tests automatisés**, chacun dans le dépôt de son composant. Ils tournent à chaque push
 dans **GitHub Actions** (onglet *Actions* de chaque dépôt), avec un vrai PostgreSQL ou MongoDB
 pour les services qui en ont un. Le front est vérifié par un build.
 
 | Dépôt | Tests | En local, depuis `poketeam/` |
 |---|---|---|
-| `poketeam-pokedex` | 50 : types, formule, mode Capture, donjons, boss final, façade PokéAPI simulée | `docker run --rm -v "$PWD/../poketeam-pokedex":/app -w /app python:3.12-slim sh -c "pip install -q -r requirements.txt pytest && python -m pytest -v"` |
+| `poketeam-pokedex` | 55 : types, formule, mode Capture, formes, donjons, boss final, façade PokéAPI simulée | `docker run --rm -v "$PWD/../poketeam-pokedex":/app -w /app python:3.12-slim sh -c "pip install -q -r requirements.txt pytest && python -m pytest -v"` |
 | `poketeam-dresseurs` | 7, contre la vraie base PostgreSQL | `docker compose run --rm dresseurs python manage.py test` |
 | `poketeam-equipes` | 31, contre la vraie base MongoDB (Pokédex simulé) | `docker compose run --rm equipes python manage.py test` |
 | `poketeam-gateway` | 9 : JWT, usurpation d'identité, routage, CORS, service arrêté | `docker run --rm -v "$PWD/../poketeam-gateway":/app -w /app node:22-alpine sh -c "npm ci --silent && npm test"` |

@@ -105,7 +105,7 @@ flowchart TB
         M["<b>main.py</b> — interface HTTP<br/>routes, validation Pydantic, codes d'erreur"]
         A["<b>pokeapi.py</b> — Anti-Corruption Layer<br/>traduit PokéAPI en profils simples,<br/>index des Pokémon, formes, cache mémoire"]
         L["<b>logic.py</b> — domaine pur<br/>multiplicateurs de types, summary, analyse,<br/>suggestions, formule d'affrontement"]
-        C["<b>capture.py · dungeons.py</b> — domaine pur<br/>paliers, évolutions, donjons, boss final<br/>(référentiel statique data/capture.json)"]
+        C["<b>capture.py · dungeons.py</b> — domaine pur<br/>paliers, évolutions, formes, donjons, boss final<br/>(référentiel statique data/capture.json)"]
     end
     M --> A
     M --> L

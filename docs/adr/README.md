@@ -23,3 +23,4 @@ Chaque décision d'architecture importante est documentée : contexte, décision
 | 0017 | [Un dépôt par composant, regroupés dans une organisation](0017-un-depot-par-composant.md) | Acceptée |
 | 0018 | [Entraînement dans les paliers terminés et écart de palier maximal](0018-entrainement-et-ecart-de-palier.md) | Acceptée |
 | 0019 | [Donjons pour les légendaires et les Méga, boss final fixe](0019-donjons-et-boss-final.md) | Acceptée |
+| 0020 | [Formes alternatives : équivalentes d'office, améliorées à mériter](0020-formes-alternatives.md) | Acceptée |
