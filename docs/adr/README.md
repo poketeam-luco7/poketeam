@@ -14,10 +14,12 @@ Chaque décision d'architecture importante est documentée : contexte, décision
 | 0008 | [Source unique de vérité des règles Pokémon](0008-source-unique-regles-pokemon.md) | Acceptée |
 | 0009 | [Formule d'affrontement et place du calcul](0009-formule-affrontement.md) | Acceptée |
 | 0010 | [Communication synchrone REST entre services](0010-communication-synchrone.md) | Acceptée |
-| 0011 | [Boss de la semaine déduit de la date](0011-boss-sans-etat.md) | Acceptée |
+| 0011 | [Boss de la semaine déduit de la date](0011-boss-sans-etat.md) | Remplacée par 0019 |
 | 0012 | [Règles de composition validées côté serveur](0012-regles-cote-serveur.md) | Acceptée |
 | 0013 | [Secrets et mots de passe](0013-secrets-mots-de-passe.md) | Acceptée |
 | 0014 | [Référentiel statique pour le mode Capture](0014-referentiel-capture-statique.md) | Acceptée |
 | 0015 | [Progression du mode Capture : stockée par Équipes, décidée par le serveur](0015-progression-capture.md) | Acceptée |
 | 0016 | [Les Pokémon capturés, seul droit d'utilisation](0016-pokemon-debloques-droit-utilisation.md) | Acceptée |
 | 0017 | [Un dépôt par composant, regroupés dans une organisation](0017-un-depot-par-composant.md) | Acceptée |
+| 0018 | [Entraînement dans les paliers terminés et écart de palier maximal](0018-entrainement-et-ecart-de-palier.md) | Acceptée |
+| 0019 | [Donjons pour les légendaires et les Méga, boss final fixe](0019-donjons-et-boss-final.md) | Acceptée |

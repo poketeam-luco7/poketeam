@@ -19,7 +19,7 @@
 .membre { width: 110px; }
 .tiny { font-size: 0.7rem; }
 
-.choix-membre { width: 100px; cursor: pointer; border: 2px solid transparent; }
+.choix-membre { width: 112px; cursor: pointer; border: 2px solid transparent; }
 .choix-membre.choisi { border-color: #198754; background: #e3f4ea; }
 
 .grille-paliers { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
@@ -33,3 +33,7 @@
 .choix-membre.interdit { cursor: not-allowed; opacity: .45; }
 .choix-membre.interdit img { filter: grayscale(1); }
 .preparation { border-left: 4px solid #dc3545 !important; }
+
+.type-mini { font-size: 0.6rem; padding: 2px 5px; }
+.filtres { background: #f8f9fa; border-radius: 8px; padding: 8px 10px; }
+.fw-semibold { font-weight: 600; }

@@ -128,18 +128,57 @@
           Un Pokémon ne peut pas combattre 2 paliers (ou plus) sous le sien.
           Chaque victoire compte pour l'évolution de chaque membre.
         </p>
+        <!-- Filtres de la collection -->
+        <div class="filtres d-flex flex-wrap align-items-end gap-2 mb-3">
+          <div>
+            <label for="filtreType" class="form-label tiny mb-0">Type</label>
+            <select id="filtreType" class="form-select form-select-sm" [(ngModel)]="filtreType">
+              <option value="">Tous les types</option>
+              <option *ngFor="let t of types" [value]="t">{{ typeFr(t) }}</option>
+            </select>
+          </div>
+          <div>
+            <label for="statsMin" class="form-label tiny mb-0">Stats min</label>
+            <input id="statsMin" type="number" class="form-control form-control-sm" style="width: 100px;"
+                   [(ngModel)]="statsMin" min="0" step="50" placeholder="0">
+          </div>
+          <div>
+            <label for="statsMax" class="form-label tiny mb-0">Stats max</label>
+            <input id="statsMax" type="number" class="form-control form-control-sm" style="width: 100px;"
+                   [(ngModel)]="statsMax" min="0" step="50" placeholder="∞">
+          </div>
+          <div>
+            <label for="tri" class="form-label tiny mb-0">Tri</label>
+            <select id="tri" class="form-select form-select-sm" [(ngModel)]="tri">
+              <option value="ligne">Par ligne d'évolution</option>
+              <option value="desc">Stats décroissantes</option>
+              <option value="asc">Stats croissantes</option>
+            </select>
+          </div>
+          <div class="form-check ms-1 mb-1">
+            <input id="masquerTropForts" type="checkbox" class="form-check-input" [(ngModel)]="masquerTropForts">
+            <label for="masquerTropForts" class="form-check-label small">Masquer les trop forts</label>
+          </div>
+          <button class="btn btn-sm btn-outline-secondary mb-1" (click)="reinitialiserFiltres()">Réinitialiser</button>
+          <small class="text-muted ms-auto mb-1">{{ collectionFiltree.length }} / {{ etat.collection.length }}</small>
+        </div>
         <div class="d-flex flex-wrap gap-2 mb-3">
-          <div *ngFor="let p of etat.collection" class="choix-membre text-center p-1 rounded"
+          <div *ngFor="let p of collectionFiltree" class="choix-membre text-center p-1 rounded"
                [class.choisi]="selection.includes(p.id)" [class.interdit]="tropFort(p)"
                [title]="tropFort(p) ? 'Trop fort pour ce palier' : ''" (click)="basculer(p)">
             <img [src]="p.sprite" [alt]="p.name" style="width: 56px; height: 56px;">
-            <div class="tiny">{{ p.name | nomPokemon }}</div>
+            <div class="tiny fw-semibold">{{ p.name | nomPokemon }}</div>
+            <div class="d-flex justify-content-center flex-wrap gap-1 my-1">
+              <span *ngFor="let t of p.types" class="badge type-mini" [ngClass]="'bg-' + t">{{ typeFr(t) }}</span>
+            </div>
+            <div class="tiny">Stats <strong>{{ p.statTotal }}</strong></div>
             <span *ngIf="tropFort(p)" class="badge bg-secondary tiny">Trop fort</span>
             <ng-container *ngIf="!tropFort(p)">
               <ng-container *ngTemplateOutlet="barre; context: { $implicit: progression(p) }"></ng-container>
             </ng-container>
           </div>
         </div>
+        <p *ngIf="collectionFiltree.length === 0" class="small text-muted">Aucun Pokémon ne correspond à ces filtres.</p>
         <button class="btn btn-sm me-2" [ngClass]="palier.training ? 'btn-info' : 'btn-danger'"
                 (click)="lancerRun()" [disabled]="!selection.length">
           {{ palier.training ? "Lancer l'entraînement" : 'Lancer la run' }}

@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { API_URL } from '../api.config';
-import { typeFr } from '../commun/pokemon-types';
+import { TYPES, typeFr } from '../commun/pokemon-types';
 import { NomPokemonPipe } from '../commun/nom-pokemon.pipe';
 import { CombatCaptureService } from '../service/capture/combat-capture.service';
 
@@ -22,6 +22,14 @@ export class CaptureComponent {
   palier: any = null;
   selection: (number | string)[] = [];
   static readonly ECART_MAX = 1;   // même règle que le serveur : 1 palier sous le sien, pas 2
+
+  // Filtres de la collection pendant la composition de l'équipe
+  readonly types = TYPES;
+  filtreType = '';
+  statsMin: number | null = null;
+  statsMax: number | null = null;
+  tri: 'ligne' | 'desc' | 'asc' = 'ligne';
+  masquerTropForts = false;
 
   private readonly noms = new NomPokemonPipe();
   typeFr = typeFr;
@@ -58,6 +66,27 @@ export class CaptureComponent {
     const permis = new Set((this.etat?.collection || []).filter((c: any) => !this.tropFort(c)).map((c: any) => c.id));
     this.selection = this.selection.filter(id => permis.has(id));
     if (!this.selection.length && permis.has(this.etat?.starter)) this.selection = [this.etat.starter];
+  }
+
+  /** Collection filtrée et triée ; les Pokémon déjà choisis restent toujours visibles. */
+  get collectionFiltree(): any[] {
+    const min = this.statsMin ?? 0;
+    const max = this.statsMax ?? Infinity;
+    const liste = (this.etat?.collection || []).filter((p: any) =>
+      this.selection.includes(p.id) || (
+        (!this.filtreType || p.types?.includes(this.filtreType)) &&
+        p.statTotal >= min && p.statTotal <= max &&
+        !(this.masquerTropForts && this.tropFort(p))));
+    if (this.tri === 'desc') return [...liste].sort((a, b) => b.statTotal - a.statTotal);
+    if (this.tri === 'asc') return [...liste].sort((a, b) => a.statTotal - b.statTotal);
+    return liste;
+  }
+
+  reinitialiserFiltres() {
+    this.filtreType = '';
+    this.statsMin = this.statsMax = null;
+    this.tri = 'ligne';
+    this.masquerTropForts = false;
   }
 
   choisirPalier(t: any) {

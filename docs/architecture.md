@@ -60,7 +60,7 @@ flowchart TB
         F["<b>Front</b><br/>Angular 19, Bootstrap 5<br/><i>pages, arène animée</i>"]
         G["<b>API Gateway</b><br/>Node 22, Express<br/><i>routage, vérification JWT, CORS</i>"]
         D["<b>Dresseurs</b><br/>Python, Django + DRF<br/><i>comptes, connexion, émission des JWT</i>"]
-        E["<b>Équipes</b><br/>Python, Django + DRF + pymongo<br/><i>équipes, droits d'accès, versus, boss</i>"]
+        E["<b>Équipes</b><br/>Python, Django + DRF + pymongo<br/><i>équipes, droits d'accès, progression</i>"]
         P["<b>Pokédex</b><br/>Python, FastAPI — sans état<br/><i>façade PokéAPI, règles des types, calculs</i>"]
         PG[("<b>PostgreSQL 16</b><br/>table des dresseurs")]
         MG[("<b>MongoDB 7</b><br/>collection teams")]
@@ -73,7 +73,7 @@ flowchart TB
     G -->|"/auth, /users"| D
     G -->|"/teams"| E
     G -->|"/pokeapi/*"| P
-    E -->|"REST interne<br/>/teams/analyze, /teams/compare, /boss/fight"| P
+    E -->|"REST interne<br/>/teams/analyze, /teams/compare,<br/>/capture/*, /dungeons/*, /boss/fight"| P
     D --> PG
     E --> MG
     P -->|"HTTPS + cache mémoire"| API
@@ -91,7 +91,7 @@ flowchart TB
 | Gateway | Point d'entrée unique, **authentification** (qui es-tu ?), CORS | Aucune règle métier |
 | Dresseurs | Identité : comptes, mots de passe hachés, émission des JWT | Vérifier les JWT (c'est la gateway) |
 | Équipes | Ce que possède le dresseur : équipes, **autorisation** (est-ce ton équipe ?), persistance | Aucune règle de type Pokémon |
-| Pokédex | Toute la connaissance Pokémon : données, types, faiblesses, analyse, formule de combat, boss | Aucun stockage, aucune notion d'utilisateur |
+| Pokédex | Toute la connaissance Pokémon : données, types, faiblesses, analyse, formule de combat, capture, donjons, boss final | Aucun stockage, aucune notion d'utilisateur |
 
 ---
 
@@ -104,10 +104,12 @@ flowchart TB
     subgraph PK["Pokédex (FastAPI)"]
         M["<b>main.py</b> — interface HTTP<br/>routes, validation Pydantic, codes d'erreur"]
         A["<b>pokeapi.py</b> — Anti-Corruption Layer<br/>traduit PokéAPI en profils simples,<br/>index des Pokémon, formes, cache mémoire"]
-        L["<b>logic.py</b> — domaine pur<br/>multiplicateurs de types, summary, analyse,<br/>suggestions, formule d'affrontement, boss"]
+        L["<b>logic.py</b> — domaine pur<br/>multiplicateurs de types, summary, analyse,<br/>suggestions, formule d'affrontement"]
+        C["<b>capture.py · dungeons.py</b> — domaine pur<br/>paliers, évolutions, donjons, boss final<br/>(référentiel statique data/capture.json)"]
     end
     M --> A
     M --> L
+    M --> C
     A --> L
     A -->|"seul point réseau : _fetch()"| API["PokéAPI"]
 ```
@@ -171,21 +173,26 @@ sequenceDiagram
     Note over F: Mise en scène : intro, attaques par type, K.O.<br/>Le résultat n'est pas stocké.
 ```
 
-### Boss de la semaine
+### Donjons et boss final
 
 ```mermaid
 sequenceDiagram
     participant F as Front
     participant E as Équipes
+    participant M as MongoDB
     participant P as Pokédex
-    F->>P: GET /pokeapi/boss (via la gateway)
-    P->>P: semaine ISO → BOSS_CATALOG[(année×100 + semaine) mod 8]
-    P-->>F: boss : artwork, types, stats × 5, fin de semaine
-    F->>E: POST /teams/:id/boss (via la gateway)
-    E->>P: POST /boss/fight (summary de l'équipe)
-    P-->>E: même formule que le versus
-    E-->>F: résultat
+    F->>E: POST /dungeons/150/fight {teamId} (via la gateway)
+    E->>M: l'équipe (propriétaire, Pokémon tous capturés) et la progression
+    E->>P: POST /dungeons/fight (summary de l'équipe, Pokémon débloqués)
+    P->>P: mode ouvert (≥ 25 capturés) ? donjon visible ? stats ≥ 3 × celles du Pokémon ?
+    P-->>E: 400 avec la raison, ou combat (Pokémon × 4) + récompense
+    E->>M: si victoire : $addToSet de la récompense, $inc des victoires de chaque membre
+    E-->>F: combat à mettre en scène + Pokémon obtenu
 ```
+
+Le boss final suit le même chemin (`POST /teams/:id/boss` puis `/boss/fight`) avec un seul
+Pokémon fixe, Éthernatos Infinimax ; une victoire est enregistrée dans la progression
+([ADR 0019](adr/0019-donjons-et-boss-final.md)).
 
 ---
 

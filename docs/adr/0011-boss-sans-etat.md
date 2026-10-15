@@ -1,6 +1,6 @@
 # ADR 0011 — Boss de la semaine déduit de la date
 
-- **Statut** : acceptée
+- **Statut** : remplacée par [ADR 0019](0019-donjons-et-boss-final.md)
 - **Date** : 2026-10-13
 
 ## Contexte

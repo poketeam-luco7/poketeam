@@ -1,7 +1,7 @@
 # PokéTeam — Pocket'APP en microservices
 
 Application de création d'équipes Pokémon, avec analyse des faiblesses, affrontements animés
-entre équipes et un boss de la semaine. Projet de cours : **migration d'un monolithe NestJS
+entre équipes, un mode Capture, des donjons et un boss final. Projet de cours : **migration d'un monolithe NestJS
 vers une architecture microservices**.
 
 | Contrainte du sujet | Réalisation |
@@ -60,15 +60,22 @@ Pourquoi ce découpage : [ADR 0017](docs/adr/0017-un-depot-par-composant.md).
   (*Species Clause*), une seule Méga-Évolution par équipe.
 - **Versus** : affrontement entre deux équipes (les tiennes ou les équipes publiques des autres
   dresseurs), avec une mise en scène animée et le détail du calcul.
-- **Boss de la semaine** : un Pokémon géant (stats × 5) à affronter, qui change chaque lundi.
+- **Donjons** : les légendaires, les fabuleux et les Méga ne se capturent pas en run, ils ont
+  chacun leur donjon. Le mode s'ouvre à **25 Pokémon capturés** ; pour entrer, le total des
+  stats de l'équipe doit valoir **3 fois** celles du Pokémon, qui combat avec ses stats **× 4**.
+  Le donjon d'une Méga apparaît quand on possède l'espèce qui méga-évolue.
+- **Boss final** : **Éthernatos Infinimax** (1 125 de stats, × 4 en combat), objectif de fin de
+  jeu, réservé aux équipes d'au moins 3 375 de stats.
 - **Mode Capture** : on commence avec un seul starter (parmi les 27 des 9 générations) et on
   débloque les autres en combattant. Les Pokémon sauvages sont répartis en **paliers de 50 en
   stats de base** ; une run = 3 combats d'affilée contre des adversaires choisis parmi 3 tirés au
   hasard. Gagner les 3 permet de capturer le **premier stade** de la ligne d'un Pokémon battu.
   Les évolutions se gagnent au combat : **10 victoires** pour la 1re, **30** pour la 2e, choix de
   la branche pour Évoli et consorts, **50 victoires** avec la forme finale pour ses Méga.
-  L'équipe est composée au lancement de chaque run et reste figée jusqu'à la capture ou la
-  défaite ; la progression vers l'évolution de chaque membre s'affiche pendant la run.
+  On choisit d'abord le palier, puis l'équipe, qui reste figée jusqu'à la capture ou la
+  défaite ; un Pokémon ne peut pas combattre **2 paliers ou plus sous le sien**. Un palier dont
+  on possède toutes les lignes devient un **entraînement** : les victoires comptent pour les
+  évolutions, sans capture à la clé.
 - **Pokédex du dresseur** : Pokémon capturés sur 1 025, par génération, et Méga-Évolutions.
   Les Pokémon débloqués sont les seuls utilisables partout : une équipe créée avant ce contrôle
   et contenant un Pokémon non capturé est marquée verrouillée et ne peut plus combattre.
@@ -134,7 +141,7 @@ poketeam-workspace/
 ├── poketeam-front/            # Angular 19 (front existant du monolithe)
 ├── poketeam-gateway/          # Node/Express : routage, JWT, CORS
 ├── poketeam-dresseurs/        # Django + DRF + PostgreSQL : comptes, authentification
-├── poketeam-equipes/          # Django + DRF + pymongo + MongoDB : équipes, versus, boss, capture
+├── poketeam-equipes/          # Django + DRF + pymongo + MongoDB : équipes, versus, capture, donjons
 └── poketeam-pokedex/          # FastAPI, sans état : façade PokéAPI, règles et calculs Pokémon
     ├── app/data/capture.json  # référentiel du mode Capture (espèces, évolutions, stats)
     └── scripts/               # génération de ce référentiel depuis les CSV de PokéAPI
@@ -156,15 +163,17 @@ Les routes conservent le contrat du monolithe d'origine (`/auth/login`, `/users`
 | GET · PUT · DELETE | `/teams/:id` | ✔ | Équipes | Lire, modifier, supprimer (propriétaire) |
 | GET | `/teams/public` | ✔ | Équipes | Équipes publiques |
 | POST | `/teams/:a/versus/:b` | ✔ | Équipes → Pokédex | Affrontement |
-| POST | `/teams/:id/boss` | ✔ | Équipes → Pokédex | Combat contre le boss de la semaine |
+| POST | `/teams/:id/boss` | ✔ | Équipes → Pokédex | Combat contre le boss final |
 | GET | `/pokeapi/generation/:n` | – | Pokédex | Pokémon d'une génération (1 à 9) et leurs formes |
 | GET | `/pokeapi/megas` | – | Pokédex | Méga-Évolutions |
 | GET | `/pokeapi/type/:type/pokemon` | – | Pokédex | Pokémon d'un type, toutes générations |
 | GET | `/pokeapi/poke/:id` | – | Pokédex | Profil (stats, types, faiblesses, résistances) |
-| GET | `/pokeapi/boss` | – | Pokédex | Boss de la semaine |
+| GET | `/pokeapi/boss` | – | Pokédex | Boss final (Éthernatos Infinimax) |
+| GET | `/dungeons` | ✔ | Équipes → Pokédex | Donjons visibles, ouverture du mode, boss final |
+| POST | `/dungeons/:id/fight` | ✔ | Équipes → Pokédex | Entrer dans un donjon avec une équipe (`teamId`) |
 | GET | `/capture` | ✔ | Équipes → Pokédex | Ma progression (collection, Pokédex, paliers, évolutions) |
 | POST | `/capture/start` | ✔ | Équipes | Choisir son starter |
-| POST · DELETE | `/capture/run` | ✔ | Équipes → Pokédex | Lancer une run (`tier`, `pokemonIds` : équipe de la run) ou l'abandonner |
+| POST · DELETE | `/capture/run` | ✔ | Équipes → Pokédex | Lancer une run ou un entraînement (`tier`, `pokemonIds` : équipe de la run) ou l'abandonner |
 | POST | `/capture/run/fight` | ✔ | Équipes → Pokédex | Combattre un des adversaires proposés |
 | POST | `/capture/run/reward` | ✔ | Équipes | Capturer un Pokémon battu (son premier stade) |
 | POST | `/capture/evolution` | ✔ | Équipes → Pokédex | Choisir une branche d'évolution |
@@ -175,16 +184,16 @@ en développement, exposer temporairement le port 8000 du service `pokedex`.
 
 ## Tests
 
-**77 tests automatisés**, chacun dans le dépôt de son composant. Ils tournent à chaque push
+**96 tests automatisés**, chacun dans le dépôt de son composant. Ils tournent à chaque push
 dans **GitHub Actions** (onglet *Actions* de chaque dépôt), avec un vrai PostgreSQL ou MongoDB
 pour les services qui en ont un. Le front est vérifié par un build.
 
 | Dépôt | Tests | En local, depuis `poketeam/` |
 |---|---|---|
-| `poketeam-pokedex` | 39 : types, formule, boss, mode Capture, façade PokéAPI simulée | `docker run --rm -v "$PWD/../poketeam-pokedex":/app -w /app python:3.12-slim sh -c "pip install -q -r requirements.txt pytest && python -m pytest -v"` |
+| `poketeam-pokedex` | 49 : types, formule, mode Capture, donjons, boss final, façade PokéAPI simulée | `docker run --rm -v "$PWD/../poketeam-pokedex":/app -w /app python:3.12-slim sh -c "pip install -q -r requirements.txt pytest && python -m pytest -v"` |
 | `poketeam-dresseurs` | 7, contre la vraie base PostgreSQL | `docker compose run --rm dresseurs python manage.py test` |
-| `poketeam-equipes` | 23, contre la vraie base MongoDB (Pokédex simulé) | `docker compose run --rm equipes python manage.py test` |
-| `poketeam-gateway` | 8 : JWT, usurpation d'identité, routage, CORS, service arrêté | `docker run --rm -v "$PWD/../poketeam-gateway":/app -w /app node:22-alpine sh -c "npm ci --silent && npm test"` |
+| `poketeam-equipes` | 31, contre la vraie base MongoDB (Pokédex simulé) | `docker compose run --rm equipes python manage.py test` |
+| `poketeam-gateway` | 9 : JWT, usurpation d'identité, routage, CORS, service arrêté | `docker run --rm -v "$PWD/../poketeam-gateway":/app -w /app node:22-alpine sh -c "npm ci --silent && npm test"` |
 
 ## La formule d'affrontement
 
